@@ -5,20 +5,12 @@ require "geocoder/results/mapquest"
 module Geocoder::Lookup
   class Mapquest < Base
 
-    def name
-      "Mapquest"
-    end
-
-    def required_api_key_parts
-      ["key"]
-    end
-
     private # ---------------------------------------------------------------
 
     def query_url(query)
       key = Geocoder::Configuration.api_key
       domain = key ? "www" : "open"
-      url = "#{protocol}://#{domain}.mapquestapi.com/geocoding/v1/#{search_type(query)}?"
+      url = "http://#{domain}.mapquestapi.com/geocoding/v1/#{search_type(query)}?"
       url + url_query_string(query)
     end
 

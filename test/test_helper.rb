@@ -75,19 +75,13 @@ module Geocoder
     class Base
       private #-----------------------------------------------------------------
       def read_fixture(file)
-        filepath = File.join("test", "fixtures", file)
-        s = File.read(filepath).strip.gsub(/\n\s*/, "")
-        s.instance_eval do
-          def body; self; end
-          def code; "200"; end
-        end
-        s
+        File.read(File.join("test", "fixtures", file)).strip.gsub(/\n\s*/, "")
       end
     end
 
     class Google < Base
       private #-----------------------------------------------------------------
-      def make_api_request(query)
+      def fetch_raw_data(query)
         raise TimeoutError if query.text == "timeout"
         raise SocketError if query.text == "socket_error"
         file = case query.text
@@ -105,13 +99,14 @@ module Geocoder
 
     class Yahoo < Base
       private #-----------------------------------------------------------------
-      def make_api_request(query)
+      def fetch_raw_data(query)
         raise TimeoutError if query.text == "timeout"
         raise SocketError if query.text == "socket_error"
         file = case query.text
-          when "no results"; :no_results
-          when "error";      :error
-          else               :madison_square_garden
+          when "no results v1"; :v1_no_results
+          when "madison square garden v1"; :v1_madison_square_garden
+          when "no results";    :no_results
+          else                  :madison_square_garden
         end
         read_fixture "yahoo_#{file}.json"
       end
@@ -119,7 +114,7 @@ module Geocoder
 
     class Yandex < Base
       private #-----------------------------------------------------------------
-      def make_api_request(query)
+      def fetch_raw_data(query)
         raise TimeoutError if query.text == "timeout"
         raise SocketError if query.text == "socket_error"
         file = case query.text
@@ -133,7 +128,7 @@ module Geocoder
 
     class GeocoderCa < Base
       private #-----------------------------------------------------------------
-      def make_api_request(query)
+      def fetch_raw_data(query)
         raise TimeoutError if query.text == "timeout"
         raise SocketError if query.text == "socket_error"
         if query.reverse_geocode?
@@ -150,7 +145,7 @@ module Geocoder
 
     class Freegeoip < Base
       private #-----------------------------------------------------------------
-      def make_api_request(query)
+      def fetch_raw_data(query)
         raise TimeoutError if query.text == "timeout"
         raise SocketError if query.text == "socket_error"
         file = case query.text
@@ -163,7 +158,7 @@ module Geocoder
 
     class Bing < Base
       private #-----------------------------------------------------------------
-      def make_api_request(query)
+      def fetch_raw_data(query)
         raise TimeoutError if query.text == "timeout"
         raise SocketError if query.text == "socket_error"
         if query.reverse_geocode?
@@ -180,7 +175,7 @@ module Geocoder
 
     class Nominatim < Base
       private #-----------------------------------------------------------------
-      def make_api_request(query)
+      def fetch_raw_data(query)
         raise TimeoutError if query.text == "timeout"
         raise SocketError if query.text == "socket_error"
         file = case query.text
@@ -193,7 +188,7 @@ module Geocoder
 
     class Mapquest < Base
       private #-----------------------------------------------------------------
-      def make_api_request(query)
+      def fetch_raw_data(query)
         raise TimeoutError if query.text == "timeout"
         raise SocketError if query.text == "socket_error"
         file = case query.text
@@ -324,16 +319,5 @@ class Test::Unit::TestCase
     return false unless coordinates.size == 2 # Should have dimension 2
     coordinates[0].nan? && coordinates[1].nan? # Both coordinates should be NaN
   end
-
-  def set_api_key!(lookup_name)
-    lookup = Geocoder::Lookup.get(lookup_name)
-    if lookup.required_api_key_parts.size == 1
-      key = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-    elsif lookup.required_api_key_parts.size > 1
-      key = lookup.required_api_key_parts
-    else
-      key = nil
-    end
-    Geocoder::Configuration.api_key = key
-  end
 end
+

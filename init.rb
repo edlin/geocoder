@@ -1,3 +1,1 @@
 require 'geocoder'
-
-# more crap

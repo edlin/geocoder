@@ -5,10 +5,6 @@ module Geocoder
   module Lookup
     class Test < Base
 
-      def name
-        "Test"
-      end
-
       def self.add_stub(query_text, results)
         stubs[query_text] = results
       end
